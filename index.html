@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>API UA — Gateway Project</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    a, button, div[onclick], .toggle, .scroll-cta, .arrow-wrap, .dc{
+      outline: none; -webkit-tap-highlight-color: transparent;
+      user-select: none; -webkit-user-select: none; cursor: pointer;
+    }
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    :root {
+      --bg: #06090f; --surface: #0c1118; --surface2: #121820;
+      --border: rgba(255,255,255,0.07); --text: #e2e8f0; --muted: #64748b;
+      --accent: #3b82f6; --accent2: #8b5cf6; --card: rgba(12,17,24,0.9);
+    }
+    [data-theme="light"] {
+      --bg: #f1f5fb; --surface: #ffffff; --surface2: #e8eef8;
+      --border: rgba(0,0,0,0.08); --text: #0f172a; --muted: #64748b;
+      --accent: #2563eb; --accent2: #7c3aed; --card: rgba(255,255,255,0.9);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ─── HERO ─── */
+    #hero {
+      height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .hero-bg { position: absolute; inset: 0; background: var(--bg); transition: background 0.3s; }
+    .hero-bg::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 35%, rgba(59,130,246,0.14) 0%, transparent 68%),
+        radial-gradient(ellipse 45% 40% at 15% 85%, rgba(139,92,246,0.08) 0%, transparent 60%);
+      opacity: 0; animation: fadeIn 1.2s ease 0.4s forwards;
+    }
+    .hero-bg::after {
+      content: ''; position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(59,130,246,0.13) 1px, transparent 1px);
+      background-size: 52px 52px; background-position: 26px 26px;
+      -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 50%, transparent 30%, black 80%);
+      mask-image: radial-gradient(ellipse 60% 55% at 50% 50%, transparent 30%, black 80%);
+      opacity: 0; animation: fadeIn 1.5s ease 0.6s forwards;
+    }
+    .hero-orb {
+      position: absolute; width: 580px; height: 580px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,0.13) 0%, transparent 65%);
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+      opacity: 0; will-change: transform;
+      animation: fadeIn 1.4s ease 0.8s forwards, float 7s ease-in-out 2.5s infinite;
+    }
+    @keyframes fadeIn { to { opacity: 1; } }
+    @keyframes float { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-52%) scale(1.04); } }
+
+    .hero-content { position: relative; z-index: 2; text-align: center; padding: 0 1.5rem; }
+    .hero-badge {
+      display: inline-block; font-size: 0.67rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--accent); border: 1px solid rgba(59,130,246,0.4);
+      padding: 0.28rem 0.85rem; border-radius: 2px; margin-bottom: 2rem;
+      opacity: 0; transform: translateY(14px); animation: up 0.7s ease 0.5s forwards;
+    }
+    .hero-title {
+      font-size: clamp(4.5rem, 13vw, 9.5rem); font-weight: 900;
+      line-height: 0.88; letter-spacing: -0.04em;
+      opacity: 0; transform: translateY(22px); animation: up 0.8s ease 0.7s forwards;
+    }
+    .hero-title .hl { color: var(--accent); }
+    .hero-sub {
+      font-size: clamp(0.92rem, 1.7vw, 1.12rem); color: var(--muted); font-weight: 400;
+      margin: 1.3rem auto 0; max-width: 500px; line-height: 1.7;
+      opacity: 0; transform: translateY(14px); animation: up 0.8s ease 0.9s forwards;
+    }
+    .hero-stats {
+      display: flex; gap: 2.5rem; justify-content: center; margin-top: 2.5rem;
+      opacity: 0; transform: translateY(14px); animation: up 0.8s ease 1.1s forwards;
+    }
+    .stat-val { font-size: 0.95rem; font-weight: 700; }
+    .stat-lbl { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 0.15rem; }
+    .hero-cta {
+      display: flex; gap: 1rem; justify-content: center; margin-top: 2.5rem;
+      opacity: 0; transform: translateY(14px); animation: up 0.8s ease 1.25s forwards;
+    }
+    
+    /* Promo Video Placeholder */
+    .promo-video-box {
+      margin: 2.5rem auto 0;
+      width: 100%;
+      max-width: 320px;
+      padding: 1rem;
+      border: 1px dashed var(--accent);
+      border-radius: 8px;
+      background: rgba(59,130,246,0.05);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      opacity: 0;
+      transform: translateY(14px);
+      animation: up 0.8s ease 1.35s forwards;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .scroll-cta {
+      position: absolute; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+      z-index: 2; text-align: center; cursor: pointer;
+    }
+    .scroll-cta-inner { opacity: 0; transform: translateY(14px); animation: up 0.8s ease 1.5s forwards; }
+    .scroll-cta span { display: block; font-size: 0.67rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
+    .arrow-wrap { margin: 0 auto; width: 20px; height: 20px; animation: bounce 1.9s ease-in-out infinite; }
+    .arrow-wrap.still { animation: none; }
+    .arrow { width: 20px; height: 20px; border-right: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(45deg); }
+    @keyframes up     { to { opacity: 1; transform: translateY(0); } }
+    @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+
+    /* ─── NAVBAR ─── */
+    #nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: 60px; padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      background: transparent; border-bottom: 1px solid transparent;
+      transition: background 0.4s ease, border-color 0.4s ease;
+      opacity: 0; animation: fadeIn 0.7s ease 1.1s forwards;
+    }
+    #nav.scrolled { background: var(--surface); border-bottom-color: var(--border); }
+    .nav-logo { font-weight: 800; font-size: 1rem; color: var(--text); text-decoration: none; letter-spacing: 0.04em; }
+    .nav-logo .hl { color: var(--accent); }
+    .nav-links { display: flex; gap: 1.8rem; list-style: none; }
+    .nav-links a { color: rgba(226,232,240,0.6); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.04em; transition: color 0.2s; }
+    #nav.scrolled .nav-links a { color: var(--muted); }
+    .nav-links a:hover, .nav-links a.act { color: var(--text) !important; }
+    [data-theme="light"] .nav-links a { color: rgba(15,23,42,0.5); }
+    .toggle {
+      width: 48px; height: 26px; border-radius: 13px;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      cursor: pointer; position: relative; flex-shrink: 0;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    #nav.scrolled .toggle { background: var(--surface2); border-color: var(--border); }
+    [data-theme="light"] #nav:not(.scrolled) .toggle { background: rgba(0,0,0,0.07); border-color: rgba(0,0,0,0.15); }
+    .toggle-k {
+      position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent); transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    [data-theme="light"] .toggle-k { transform: translateX(22px); }
+
+    /* ─── SECTIONS & ALTERNATING BG ─── */
+    .section { max-width: 1080px; margin: 0 auto; padding: 7rem 2rem; }
+    
+    .alt-bg {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sec-tag { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.85rem; }
+    .sec-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; letter-spacing: -0.025em; line-height: 1.08; margin-bottom: 1.4rem; }
+    
+    /* REVEAL ANIMATION FIX */
+    .reveal { opacity: 0; transform: translateY(20px); }
+    .reveal.in { animation: revealIn 0.5s ease forwards; }
+    @keyframes revealIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── INTRO ─── */
+    .intro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 2.5rem; align-items: start; }
+    .intro-body p { color: var(--muted); line-height: 1.78; font-size: 0.97rem; margin-bottom: 1rem; }
+    .intro-body p b { color: var(--text); font-weight: 500; }
+    .cards { display: flex; flex-direction: column; gap: 0.85rem; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem 1.3rem; transition: border-color 0.2s, transform 0.2s; }
+    .card-h { display: flex; align-items: center; gap: 0.55rem; margin-bottom: 0.3rem; }
+    .card h4 { font-size: 0.88rem; font-weight: 700; }
+    .card p { font-size: 0.8rem; color: var(--muted); line-height: 1.55; }
+
+    /* ─── METHODS ─── */
+    .methods-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 2.5rem; align-items: start; }
+    .methods-body p { color: var(--muted); line-height: 1.78; font-size: 0.97rem; margin-bottom: 1rem; }
+    .methods-body p b { color: var(--text); font-weight: 500; }
+    .pivot-box { background: rgba(139,92,246,0.07); border: 1px solid rgba(139,92,246,0.2); border-radius: 8px; padding: 1.2rem 1.4rem; margin-top: 0.5rem; }
+    .pivot-box .pivot-label { font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent2); margin-bottom: 0.5rem; font-weight: 700; }
+    .pivot-box p { color: var(--muted); font-size: 0.88rem; line-height: 1.7; margin: 0; }
+    .stack-list { display: flex; flex-direction: column; gap: 0.7rem; }
+    .stack-item { display: flex; align-items: flex-start; gap: 0.85rem; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.2rem; transition: border-color 0.2s; }
+    .stack-ico { font-size: 1.3rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .stack-info h4 { font-size: 0.86rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .stack-info p { font-size: 0.79rem; color: var(--muted); line-height: 1.5; margin: 0; }
+
+    /* ─── ARCHITECTURE ─── */
+    .arch-img-wrap { margin-top: 2.5rem; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; }
+    .arch-img-wrap img { width: 100%; display: block; }
+    .arch-caption { text-align: center; font-size: 0.78rem; color: var(--muted); margin-top: 0.9rem; letter-spacing: 0.04em; }
+
+    /* ─── SCHEDULE ─── */
+    .timeline { margin-top: 2.5rem; position: relative; padding-left: 1.2rem; }
+    .timeline::before { content:''; position:absolute; left:0; top:0; bottom:0; width:1px; background:linear-gradient(to bottom, #34d399, var(--accent), var(--accent2), transparent); }
+    .ti { padding: 0 0 2.5rem 2rem; position: relative; }
+    .ti::before { content:''; position:absolute; left:-4px; top:5px; width:8px; height:8px; border-radius:50%; background:#34d399; box-shadow:0 0 7px #34d399; }
+    .ti-date { font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin-bottom:0.3rem; }
+    .ti h3 { font-size:0.97rem; font-weight:700; margin-bottom:0.3rem; }
+    .ti p { font-size:0.85rem; color:var(--muted); line-height:1.7; max-width:560px; }
+    .tag { display:inline-block; margin-top:0.5rem; font-size:0.68rem; padding:0.16rem 0.55rem; border-radius:3px; letter-spacing:0.05em; }
+    .t-done { background:rgba(52,211,153,0.1); color:#6ee7b7; }
+    .t-pend { background:rgba(59,130,246,0.1); color:var(--accent); }
+
+    /* ─── PLAYGROUND ─── */
+    #play-wrap { text-align: center; }
+    .play-inner { max-width: 680px; margin: 0 auto; }
+    .play-inner p { color: var(--muted); line-height: 1.75; font-size: 0.97rem; margin-bottom: 2rem; }
+    .play-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem; }
+    .btn {
+      display:inline-flex; align-items:center; gap:0.5rem;
+      font-size:0.8rem; font-weight:700; letter-spacing:0.07em; text-transform:uppercase;
+      padding:0.78rem 1.7rem; border-radius:4px; text-decoration:none;
+      background:var(--accent); color:#fff;
+      box-shadow:0 4px 18px rgba(59,130,246,0.22);
+      transition:opacity 0.2s, transform 0.2s;
+    }
+    .btn:hover { opacity:0.85; transform:translateY(-2px); }
+    .btn-ghost {
+      display:inline-flex; align-items:center; gap:0.5rem;
+      font-size:0.8rem; font-weight:700; letter-spacing:0.07em; text-transform:uppercase;
+      padding:0.78rem 1.7rem; border-radius:4px; text-decoration:none;
+      background: transparent; color: var(--text); border: 1px solid var(--border);
+      transition: border-color 0.2s, transform 0.2s, color 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform:translateY(-2px); }
+    .api-pills { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+    .api-pill {
+      display: inline-block;
+      font-size: 0.74rem; font-weight: 600; padding: 0.32rem 0.85rem; border-radius: 20px;
+      background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      transition: border-color 0.2s, transform 0.2s, color 0.2s;
+    }
+    .api-pill:hover {
+      border-color: var(--accent);
+      color: var(--text);
+      transform: translateY(-2px);
+    }
+
+    /* ─── DOCS ─── */
+    #docs-wrap { text-align:center; }
+    .docs-desc { color:var(--muted); max-width:500px; margin:0 auto 2.5rem; line-height:1.75; font-size:0.97rem; }
+    .doc-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.9rem; text-align:left; margin-bottom:2.5rem; }
+    .dc { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:1.3rem 1.2rem; transition:border-color 0.2s,transform 0.2s; cursor:default; }
+    .dc:hover { border-color:rgba(59,130,246,0.28); transform:translateY(-2px); }
+    .dc-ico { font-size:1.3rem; margin-bottom:0.6rem; }
+    .dc h4 { font-size:0.86rem; font-weight:700; margin-bottom:0.25rem; }
+    .dc p { font-size:0.79rem; color:var(--muted); line-height:1.55; }
+
+    /* ─── ABOUT ─── */
+    .team { display:grid; grid-template-columns:repeat(3, 1fr); gap:1.5rem; margin:2.5rem 0 2rem; }
+    .member { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:1.7rem 1.2rem; text-align:center; transition:border-color 0.2s,transform 0.2s; }
+    .member:hover { border-color:rgba(139,92,246,0.28); transform:translateY(-2px); }
+    
+    /* Image styling to make them perfectly round and centered */
+    .av-img { 
+      width: 72px; 
+      height: 72px; 
+      border-radius: 50%; 
+      object-fit: cover; 
+      object-position: center; 
+      display: block; 
+      margin: 0 auto 0.85rem; 
+      border: 2px solid var(--accent); 
+      background: var(--surface2); 
+    }
+    
+    .member h4 { font-size:0.9rem; font-weight:700; margin-bottom:0.18rem; }
+    .member .role { font-size:0.76rem; color:var(--accent2); }
+    .about-text p { color:var(--muted); line-height:1.8; font-size:0.95rem; max-width:680px; margin-bottom:0.9rem; }
+    .about-text b { color:var(--text); font-weight:500; }
+
+    /* ─── CONCLUSION ─── */
+    .conclusion-inner { max-width: 760px; }
+    .conclusion-inner p { color: var(--muted); line-height: 1.82; font-size: 0.97rem; margin-bottom: 1rem; }
+    .conclusion-inner p b { color: var(--text); font-weight: 500; }
+
+    /* ─── FOOTER ─── */
+    footer { border-top:none; padding:2rem 2rem; text-align:center; font-size:0.76rem; color:var(--muted); }
+    footer span { color:var(--accent); }
+
+    #scrollTop {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 300;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--accent); color: #fff; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.35);
+      opacity: 0; pointer-events: none; transform: translateY(12px);
+      transition: opacity 0.3s, transform 0.3s, background 0.2s;
+    }
+    #scrollTop:hover { background: var(--accent2); }
+    #scrollTop.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+    @media(max-width:720px) {
+      .intro-grid, .methods-grid { grid-template-columns:1fr; gap:2rem; }
+      .doc-grid { grid-template-columns:1fr; }
+      .nav-links { display:none; }
+      .hero-stats { gap: 1.5rem; }
+      .play-btns { flex-direction: column; align-items: center; }
+      .team { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media(max-width:480px) {
+      .team { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body>
+
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-orb"></div>
+  <div class="hero-content">
+    <div class="hero-badge">Universidade de Aveiro · DETI · PECI 2025–26</div>
+    <h1 class="hero-title">API<span class="hl"> UA</span></h1>
+    <p class="hero-sub">A secure, centralised platform for the University of Aveiro's web services — revived and reimagined from the ground up.</p>
+    <div class="hero-stats">
+      <div><div class="stat-val">4 APIs</div><div class="stat-lbl">Containerised</div></div>
+      <div><div class="stat-val">WSO2</div><div class="stat-lbl">API Gateway</div></div>
+      <div><div class="stat-val">Keycloak</div><div class="stat-lbl">Identity & Auth</div></div>
+      <div><div class="stat-val">Grafana</div><div class="stat-lbl">Monitoring</div></div>
+    </div>
+    <div class="hero-cta">
+      <a class="btn" href="https://peci-project.github.io/PECI-APIsite/" target="_blank" rel="noopener">Explore APIs →</a>
+      <a class="btn-ghost" href="documentation.html">Documentation</a>
+    </div>
+
+    <div class="promo-video-box">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      [ Promo Video Area ]
+    </div>
+  </div>
+
+  <div class="scroll-cta" onclick="document.getElementById('intro').scrollIntoView({behavior:'smooth'})">
+    <div class="scroll-cta-inner">
+      <span>Learn more</span>
+      <div class="arrow-wrap" id="arrowWrap"><div class="arrow"></div></div>
+    </div>
+  </div>
+</section>
+
+<nav id="nav">
+  <a class="nav-logo" href="#hero">API<span class="hl"> UA</span></a>
+  <ul class="nav-links">
+    <li><a href="#intro">Introduction</a></li>
+    <li><a href="#methods">Methods</a></li>
+    <li><a href="#arch">Architecture</a></li>
+    <li><a href="#sched">Timeline</a></li>
+    <li><a href="#play">APIs</a></li>
+    <li><a href="#docs">Docs</a></li>
+    <li><a href="#about">Team</a></li>
+  </ul>
+  <div class="toggle" onclick="toggleTheme()"><div class="toggle-k"></div></div>
+</nav>
+
+<div id="intro-wrap">
+  <section id="intro" class="section">
+    <div class="sec-tag reveal">01 — Introduction</div>
+    <h2 class="sec-title reveal">What is API UA?</h2>
+    <div class="intro-grid">
+      <div class="intro-body reveal">
+        <p>The <b>API UA project</b> is, above all, a platform built <b>for developers by developers</b>. If you want to create your own applications using the university's data, this is your gateway.</p>
+        <p>Over a decade ago, students at the University of Aveiro developed an API gateway to centralise the institution's web services. Over time, the service was gradually discontinued. We are reviving and modernising this platform — centralising all of the university's web services into a single, unified system.</p>
+        <p>We deliver a <b>developer-friendly experience</b> featuring an intuitive, RapidAPI-like interface. Due to the restricted nature of certain university APIs, we implemented secure login functionality via <b>Keycloak</b>. Once authenticated, users can seamlessly test endpoints, build their apps, and interact with the data directly from the platform.</p>
+      </div>
+      <div class="cards">
+        <div class="card reveal" style="animation-delay:.0s"><div class="card-h"><span>🔐</span><h4>Authentication & Security</h4></div><p>Secure login via Keycloak (IdP), JWT tokens and role-based access control — only authenticated users access private APIs.</p></div>
+        <div class="card reveal" style="animation-delay:.08s"><div class="card-h"><span>🌐</span><h4>WSO2 API Gateway</h4></div><p>Single entry point for all APIs. Validates, authenticates, and routes every request to the correct service in the private network.</p></div>
+        <div class="card reveal" style="animation-delay:.16s"><div class="card-h"><span>⚡</span><h4>FastAPI Microservices</h4></div><p>Legacy PHP APIs migrated to Python with FastAPI and containerised via Docker — Parking UA, SAS, Access Points, and Rss2Json.</p></div>
+        <div class="card reveal" style="animation-delay:.24s"><div class="card-h"><span>📊</span><h4>Grafana Monitoring</h4></div><p>Real-time dashboards via Grafana + Loki for log visualisation, metrics, and system health at a glance.</p></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="methods-wrap" class="alt-bg">
+  <section id="methods" class="section">
+    <div class="sec-tag reveal">02 — Methods</div>
+    <h2 class="sec-title reveal">How We Built It</h2>
+    <div class="methods-grid">
+      <div class="methods-body reveal">
+        <p>Our initial strategy was to configure <b>STIC's WSO2</b> as the API Gateway, migrate the existing PHP APIs to Python, containerise them individually while maintaining endpoint compatibility, and centralise documentation on a dedicated website.</p>
+        <p>The legacy APIs were <b>refactored into Python using FastAPI</b> to minimise response latency and optimise performance. Each API runs in its own Docker container, ensuring full isolation within the private network.</p>
+        <div class="pivot-box">
+          <div class="pivot-label">⟳ Pivot</div>
+          <p>Without direct university infrastructure support, we pivoted to deploying a <b>local, independent WSO2 instance</b> within our own private network — accurately simulating a real-world production scenario and maintaining all architectural goals.</p>
+        </div>
+      </div>
+      <div class="stack-list reveal" style="animation-delay:.1s">
+        <div class="stack-item"><div class="stack-ico">🔀</div><div class="stack-info"><h4>WSO2 API Manager</h4><p>Core gateway — sole component exposed to the external internet. Validates every incoming request.</p></div></div>
+        <div class="stack-item"><div class="stack-ico">🔑</div><div class="stack-info"><h4>Keycloak IdP</h4><p>Mimics the university's Identity Provider. Handles OAuth2 / JWT token issuance and user authentication.</p></div></div>
+        <div class="stack-item"><div class="stack-ico">🐳</div><div class="stack-info"><h4>Docker & Compose</h4><p>Each API and service runs in an isolated container. Ensures security, portability, and reproducibility.</p></div></div>
+        <div class="stack-item"><div class="stack-ico">📊</div><div class="stack-info"><h4>Grafana + Loki</h4><p>Real-time monitoring stack. Aggregates logs and metrics from all containers.</p></div></div>
+        <div class="stack-item"><div class="stack-ico">🧪</div><div class="stack-info"><h4>Mock API</h4><p>Simulates future university services not yet available for integration testing.</p></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="arch-wrap">
+  <section id="arch" class="section">
+    <div class="sec-tag reveal">03 — Architecture</div>
+    <h2 class="sec-title reveal">System Architecture</h2>
+    <p class="reveal" style="color:var(--muted);max-width:640px;line-height:1.75;font-size:0.97rem;margin-bottom:0.5rem;">The system runs on a <b style="color:var(--text)">private local network</b> where WSO2 is the only component exposed to the internet. All FastAPI services, Keycloak, and the monitoring stack run in isolated Docker containers behind it.</p>
+    <div class="arch-img-wrap reveal" style="animation-delay:.1s">
+      <img src="architecture.png" alt="API UA system architecture diagram — showing the Academic Playground interface, WSO2 API layer, containerised FastAPI services (Parking UA, SAS, Access Points, Rss2Json) and backend services." />
+    </div>
+    <p class="arch-caption reveal" style="animation-delay:.2s">Fig. 1 — Full API UA system architecture. Only WSO2 has access to the external internet from the private network.</p>
+  </section>
+</div>
+
+<div id="sched-wrap" class="alt-bg">
+  <section id="sched" class="section">
+    <div class="sec-tag reveal">04 — Timeline</div>
+    <h2 class="sec-title reveal">Project Phases</h2>
+    <div class="timeline">
+      <div class="ti reveal" style="animation-delay:.0s">
+        <div class="ti-date">11 February 2026</div>
+        <h3>Project Kickoff & Requirements</h3>
+        <p>Initial meeting with supervisor, requirements gathering, scope definition, and study of the original platform (API @ UA, 2012). Literature review and related work analysis.</p>
+        <span class="tag t-done">✓ Completed</span>
+      </div>
+      <div class="ti reveal" style="animation-delay:.07s">
+        <div class="ti-date">25 February 2026</div>
+        <h3>M1 — Plan & Objectives</h3>
+        <p>Presentation of project lifecycle objectives, related work overview, and development plan. Defined initial strategy: configure STIC's WSO2 and migrate PHP APIs to Python.</p>
+        <span class="tag t-done">✓ Completed</span>
+      </div>
+      <div class="ti reveal" style="animation-delay:.14s">
+        <div class="ti-date">11 March 2026</div>
+        <h3>M2 — Refactoring & Service Recovery</h3>
+        <p>Detailed requirements presentation. Focused heavily on migrating the legacy PHP APIs to Python using the FastAPI framework, and successfully resuscitated the university's canteen (SAS) services to make them available once again.</p>
+        <span class="tag t-done">✓ Completed</span>
+      </div>
+      <div class="ti reveal" style="animation-delay:.21s">
+        <div class="ti-date">15 April 2026</div>
+        <h3>M3 — The Architectural Pivot</h3>
+        <p>Major architectural pivot. After dropping the plan to integrate with STIC's infrastructure, we deployed an independent local setup. When the university's canteen services went down again, we rapidly developed a Mock API to demonstrate the platform's full potential and resilience.</p>
+        <span class="tag t-done">✓ Completed</span>
+      </div>
+      <div class="ti reveal" style="animation-delay:.28s">
+        <div class="ti-date">20 May 2026</div>
+        <h3>M4 — Final Product</h3>
+        <p>All features implemented: Docusaurus site with interactive playground, four FastAPI containerised APIs, WSO2 gateway with security policies, Keycloak integration, and full Grafana dashboards.</p>
+        <span class="tag t-done">✓ Completed</span>
+      </div>
+      <div class="ti reveal" style="animation-delay:.35s">
+        <div class="ti-date">8 June 2026</div>
+        <h3>Final Submission & Defence</h3>
+        <p>Final report submission, public project defence, and full platform presentation. System architected for future integration into STIC's infrastructure at the University of Aveiro.</p>
+        <span class="tag t-pend">⧖ Pending</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- API PLAYGROUND -->
+<div id="play-wrap">
+  <section id="play" class="section">
+    <div class="sec-tag reveal">05 — Platform</div>
+    <h2 class="sec-title reveal">Try the APIs</h2>
+    <div class="play-inner">
+      <p class="reveal">The <b style="color:var(--text)">Academic Playground & Innovation</b> is the portal developed to interact with UA's APIs. After authentication, you can test each endpoint directly in the interface — with customisable parameters and real-time responses. Available publicly for learning and integration purposes.</p>
+      <div class="play-btns reveal" style="transition-delay:.1s">
+        <a class="btn" href="https://peci-project.github.io/PECI-APIsite/" target="_blank" rel="noopener">Open API UA →</a>
+      </div>
+      <div class="api-pills reveal" style="transition-delay:.2s">
+        <a href="https://peci-project.github.io/PECI-APIsite/api/parques#description/funcionalidades-principais" target="_blank" rel="noopener" class="api-pill">🚗 Parking UA</a>
+        <a href="https://peci-project.github.io/PECI-APIsite/api/ementas#description/introduction" target="_blank" rel="noopener" class="api-pill">🍴 SAS — Menus</a>
+        <a href="https://peci-project.github.io/PECI-APIsite/api/access#description/introduction" target="_blank" rel="noopener" class="api-pill">🏛️ Access Points</a>
+        <a href="https://peci-project.github.io/PECI-APIsite/api/rss2json#description/introduction" target="_blank" rel="noopener" class="api-pill">📰 Rss2Json</a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- DOCUMENTATION -->
+<div id="docs-wrap" class="alt-bg">
+  <section id="docs" class="section">
+    <div class="sec-tag reveal">06 — Documentation</div>
+    <h2 class="sec-title reveal">Technical Reference</h2>
+    <p class="docs-desc reveal">Complete system documentation — architecture, components, endpoints, security, monitoring, and all materials produced throughout the project.</p>
+    <div class="doc-grid">
+      
+      <div class="reveal">
+        <div class="dc" onclick="window.location.href='documentation.html#architecture'" style="cursor: pointer;">
+          <div class="dc-ico">🏗️</div>
+          <h4>Architecture</h4>
+          <p>System diagram, design decisions, and data flow between components.</p>
+        </div>
+      </div>
+      
+      <div class="reveal" style="transition-delay:.07s;">
+        <div class="dc" onclick="window.location.href='documentation.html#apis'" style="cursor: pointer;">
+          <div class="dc-ico">📡</div>
+          <h4>API Reference</h4>
+          <p>Documented endpoints with request/response schemas and live examples.</p>
+        </div>
+      </div>
+      
+      <div class="reveal" style="transition-delay:.14s;">
+        <div class="dc" onclick="window.location.href='documentation.html#security'" style="cursor: pointer;">
+          <div class="dc-ico">🔐</div>
+          <h4>Security & Auth</h4>
+          <p>Keycloak authentication flows, JWT tokens, and WSO2 access policies.</p>
+        </div>
+      </div>
+      
+      <div class="reveal" style="transition-delay:.21s;">
+        <div class="dc" onclick="window.location.href='documentation.html#monitoring'" style="cursor: pointer;">
+          <div class="dc-ico">📊</div>
+          <h4>Monitoring</h4>
+          <p>Grafana + Loki stack — dashboards, logs, and real-time metrics.</p>
+        </div>
+      </div>
+      
+      <div class="reveal" style="transition-delay:.28s;">
+        <div class="dc" onclick="window.location.href='documentation.html#docker'" style="cursor: pointer;">
+          <div class="dc-ico">📦</div>
+          <h4>Docker & Deploy</h4>
+          <p>Docker Compose setup, network configuration, and environment variables.</p>
+        </div>
+      </div>
+      
+      <div class="reveal" style="transition-delay:.35s;">
+        <div class="dc" onclick="window.location.href='documentation.html#materials'" style="cursor: pointer;">
+          <div class="dc-ico">📁</div>
+          <h4>Materials</h4>
+          <p>Presentations, reports, and documents produced across all project phases.</p>
+        </div>
+      </div>
+
+    </div>
+    <a href="documentation.html" class="btn reveal">Open Full Documentation →</a>
+  </section>
+</div>
+
+<div id="conclusion-wrap">
+  <section id="conclusion" class="section">
+    <div class="sec-tag reveal">07 — Conclusion</div>
+    <h2 class="sec-title reveal">Outcome & Impact</h2>
+    <div class="conclusion-inner reveal">
+      <p>We successfully developed a <b>secure, centralised platform</b> for the university's web services. It features an intuitive interface for both developers and administrators that simplifies API management, access control, and request analytics.</p>
+      <p>Although built within a private network due to constraints in university support, this solution is <b>highly portable and architected for future integration</b> into STIC's infrastructure — requiring minimal configuration changes to deploy at scale.</p>
+    </div>
+  </section>
+</div>
+
+<div id="about-wrap" class="alt-bg">
+  <section id="about" class="section">
+    <div class="sec-tag reveal">08 — Team</div>
+    <h2 class="sec-title reveal">Who We Are</h2>
+    <div class="team">
+      <div class="member reveal" style="animation-delay:.0s">
+        <img src="carlos.jpeg" alt="Carlos Ramos" class="av-img" />
+        <h4>Carlos Ramos</h4>
+        <div class="role">Communication</div>
+      </div>
+      <div class="member reveal" style="animation-delay:.07s">
+        <img src="pedro.jpg" alt="Pedro Ferreira" class="av-img" />
+        <h4>Pedro Ferreira</h4>
+        <div class="role">System Architect</div>
+      </div>
+      <div class="member reveal" style="animation-delay:.14s">
+        <img src="dinis.png" alt="Dinis Bernardo" class="av-img" />
+        <h4>Dinis Bernardo</h4>
+        <div class="role">Project Owner & Coordenator</div>
+      </div>
+      <div class="member reveal" style="animation-delay:.21s">
+        <img src="simao.png" alt="Simão Matos" class="av-img" />
+        <h4>Simão Matos</h4>
+        <div class="role">DevOps</div>
+      </div>
+      <div class="member reveal" style="animation-delay:.28s">
+        <img src="vasco.jpg" alt="Vasco Oliveira" class="av-img" />
+        <h4>Vasco Oliveira</h4>
+        <div class="role">Quality Assurance</div>
+      </div>
+      <div class="member reveal" style="animation-delay:.35s">
+        <img src="andre.png" alt="André Reis" class="av-img" />
+        <h4>André Reis</h4>
+        <div class="role">Docker & Containerisation</div>
+      </div>
+    </div>
+    <div class="about-text reveal">
+      <p>We are students at the <b>Department of Electronics, Telecommunications and Informatics (DETI)</b> at the University of Aveiro, completing our Bachelor's in Computer and Informatics Engineering as part of the <b>PECI (Project in Computer and Informatics Engineering)</b> unit.</p>
+      <p>The project was supervised by <a href="https://www.ua.pt/pt/p/10331537" target="_blank" rel="noopener" style="color:var(--accent); text-decoration:none; font-weight:600;">Prof. Diogo Gomes</a> and represents the culmination of our undergraduate studies — bringing together distributed systems, security engineering, and software architecture into a real solution for the university.</p>
+    </div>
+  </section>
+</div>
+
+<footer>API UA — Gateway Project · <span>Universidade de Aveiro</span> · DETI · PECI 2025–2026</footer>
+
+<button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 4L3 11M10 4L17 11M10 4V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+
+<script>
+  const nav = document.getElementById('nav');
+  const arrowWrap = document.getElementById('arrowWrap');
+  let arrowStopped = false;
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > window.innerHeight * 0.6);
+    if (!arrowStopped && window.scrollY > 10) { arrowWrap.classList.add('still'); arrowStopped = true; }
+  }, { passive: true });
+
+  const spySections = ['intro','methods','arch','sched','play','docs','conclusion','about'];
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    spySections.forEach(id => { const el = document.getElementById(id); if (el && window.scrollY >= el.offsetTop - 120) cur = id; });
+    navLinks.forEach(a => a.classList.toggle('act', a.getAttribute('href') === '#' + cur));
+  }, { passive: true });
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  const scrollTopBtn = document.getElementById('scrollTop');
+  window.addEventListener('scroll', () => {
+    scrollTopBtn.classList.toggle('visible', window.scrollY > window.innerHeight * 0.85);
+  }, { passive: true });
+
+  function toggleTheme() {
+    const h = document.documentElement;
+    const next = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    h.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+</script>
+</body>
+</html>

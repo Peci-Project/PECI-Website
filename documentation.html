@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Documentation — API UA</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    a, button, div[onclick], .toggle, .sb-link, .sr, .dc, .cb-copy {
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    
+    .content, pre, p, h1, h2, h3, h4 { user-select: text; -webkit-user-select: text; }
+    
+    :root {
+      --bg: #06090f;
+      --surface: #0c1118;
+      --surface2: #121820;
+      --border: rgba(255,255,255,0.07);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent: #3b82f6;
+      --accent2: #8b5cf6;
+      --card: rgba(12,17,24,0.9);
+      --code-bg: #080c14;
+      --code-text: #a8b8d0;
+    }
+    
+    [data-theme="light"] {
+      --bg: #f1f5fb;
+      --surface: #ffffff;
+      --surface2: #e8eef8;
+      --border: rgba(0,0,0,0.08);
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --accent2: #7c3aed;
+      --card: rgba(255,255,255,0.9);
+      --code-bg: #1e2433;
+      --code-text: #a8b8d0;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ─── NAV ─── */
+    #nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      height: 60px; padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.3s;
+    }
+    .nav-logo { font-weight: 800; font-size: 1rem; color: var(--text); text-decoration: none; letter-spacing: 0.04em; }
+    .nav-logo .hl { color: var(--accent); }
+    .nav-links { display: flex; gap: 1.8rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.04em; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.cur, .nav-links a.act { color: var(--text); }
+    .toggle {
+      width: 48px; height: 26px; border-radius: 13px;
+      background: var(--surface2); border: 1px solid var(--border);
+      cursor: pointer; position: relative; flex-shrink: 0;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .toggle-k {
+      position: absolute; top: 3px; left: 3px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent);
+      transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    [data-theme="light"] .toggle-k { transform: translateX(22px); }
+
+    /* ─── HERO ─── */
+    #doc-hero {
+      padding: 8.5rem 2rem 4.5rem;
+      max-width: 860px; margin: 0 auto;
+      position: relative;
+    }
+    #doc-hero::before {
+      content: '';
+      position: absolute; top: 0; left: -200px; right: -200px; height: 320px;
+      background: radial-gradient(ellipse 70% 100% at 50% 0%, rgba(59,130,246,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .back { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent); font-size: 0.82rem; text-decoration: none; margin-bottom: 1.8rem; opacity: 0.8; transition: opacity 0.2s; }
+    .back:hover { opacity: 1; }
+    .doc-tag { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.85rem; }
+    .doc-h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 1rem; }
+    .doc-h1 .hl { color: var(--accent); }
+    .doc-sub { color: var(--muted); font-size: 1rem; max-width: 520px; line-height: 1.7; margin-bottom: 1.8rem; }
+
+    /* ─── LAYOUT ─── */
+    .layout {
+      display: grid; grid-template-columns: 240px 1fr;
+      max-width: 1180px; margin: 0 auto; padding: 0 2rem 6rem;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      position: sticky; top: 76px;
+      height: calc(100vh - 76px); overflow-y: auto;
+      padding: 1.5rem 1.5rem 1.5rem 0;
+      border-right: 1px solid var(--border);
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    }
+    .sb-head { font-size: 0.64rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); padding: 0.35rem 0.65rem; margin-bottom: 0.3rem; margin-top: 1.2rem; }
+    .sb-head:first-child { margin-top: 0; }
+    .sb-link {
+      display: flex; align-items: center; gap: 0.45rem;
+      padding: 0.42rem 0.65rem; border-radius: 5px;
+      font-size: 0.83rem; color: var(--muted);
+      cursor: pointer; text-decoration: none; transition: background 0.12s, color 0.12s;
+    }
+    .sb-link:hover { background: var(--surface2); color: var(--text); }
+    .sb-link.on { background: rgba(59,130,246,0.1); color: var(--accent); }
+    .sb-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    /* ─── CONTENT ─── */
+    .content { padding: 2rem 0 2rem 2.8rem; min-width: 0; }
+    .doc-sec { margin-bottom: 5rem; scroll-margin-top: 88px; }
+    .sec-header {
+      display: flex; align-items: center; gap: 0.9rem;
+      padding-bottom: 1.1rem; margin-bottom: 1.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sec-ico { width: 40px; height: 40px; border-radius: 7px; background: rgba(59,130,246,0.1); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .doc-sec h2 { font-size: 1.6rem; font-weight: 900; letter-spacing: -0.01em; }
+    .doc-sec h3 { font-size: 1rem; font-weight: 700; margin: 1.8rem 0 0.7rem; color: var(--text); }
+    .doc-sec p { color: var(--muted); line-height: 1.78; margin-bottom: 0.9rem; font-size: 0.94rem; }
+    .doc-sec p b { color: var(--text); font-weight: 500; }
+    .doc-sec ul { list-style: none; margin: 0.4rem 0 1rem; }
+    .doc-sec ul li { color: var(--muted); font-size: 0.92rem; line-height: 1.7; padding: 0.18rem 0 0.18rem 1.3rem; position: relative; }
+    .doc-sec ul li::before { content:'▸'; position:absolute; left:0; color:var(--accent); font-size:0.68rem; top:0.32rem; }
+    ic { font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; font-size: 0.83em; color: var(--accent); background: rgba(59,130,246,0.1); padding: 0.1rem 0.35rem; border-radius: 3px; }
+
+    /* Code blocks */
+    .cb { background: var(--code-bg); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; overflow: hidden; margin: 1.1rem 0; }
+    .cb-head { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); }
+    .cb-lang { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .cb-copy { background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--muted); font-size: 0.68rem; padding: 0.18rem 0.55rem; cursor: pointer; font-family: inherit; transition: border-color 0.2s, color 0.2s; }
+    .cb-copy:hover { border-color: var(--accent); color: var(--accent); }
+    .cb pre { padding: 1.1rem; overflow-x: auto; font-family: 'SF Mono','Cascadia Code','Consolas',monospace; font-size: 0.8rem; line-height: 1.65; color: var(--code-text); }
+
+    /* Callout */
+    .note { border-left: 3px solid var(--accent); background: rgba(59,130,246,0.07); border-radius: 0 6px 6px 0; padding: 0.9rem 1.1rem; margin: 1rem 0; font-size: 0.88rem; color: var(--text); line-height: 1.65; }
+    .note.warn { border-color: #fbbf24; background: rgba(251,191,36,0.07); }
+    .note.ok { border-color: #34d399; background: rgba(52,211,153,0.07); }
+    .note strong { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.25rem; font-family: inherit; }
+
+    /* Table */
+    .tw { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 1rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    th { background: var(--surface2); padding: 0.65rem 0.9rem; text-align: left; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+    td { padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border); color: var(--muted); }
+    tr:last-child td { border-bottom: none; }
+
+    /* Footer & Scroll */
+    footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; font-size: 0.76rem; color: var(--muted); }
+    footer span { color: var(--accent); }
+
+    #scrollTop {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 300;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.35);
+      opacity: 0; pointer-events: none;
+      transform: translateY(12px);
+      transition: opacity 0.3s, transform 0.3s, background 0.2s;
+    }
+    #scrollTop:hover { background: var(--accent2); }
+    #scrollTop.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+    /* Search */
+    .search-wrap { position: relative; margin-bottom: 2rem; }
+    .search-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 0.8rem 1rem; border-radius: 6px; font-size: 0.85rem; outline: none; transition: border-color 0.2s; }
+    .search-input:focus { border-color: var(--accent); }
+    .search-drop { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 300px; overflow-y: auto; display: none; z-index: 100; }
+    .search-drop.open { display: block; }
+    .sr { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
+    .sr:hover { background: var(--surface2); }
+    .sr h5 { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 0.2rem; }
+    .sr p { font-size: 0.75rem; color: var(--muted); }
+    .sr-none { padding: 1rem; text-align: center; font-size: 0.85rem; color: var(--muted); }
+
+    @media(max-width:860px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } .content { padding: 1.5rem 0; } .nav-links { display: none; } }
+  </style>
+  <script>
+    (function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);})();
+  </script>
+</head>
+<body>
+
+<nav id="nav">
+  <a class="nav-logo" href="index.html">API<span class="hl"> UA</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html#intro">Introduction</a></li>
+    <li><a href="index.html#sched">Schedule</a></li>
+    <li><a class="cur" href="documentation.html">Documentation</a></li>
+    <li><a href="index.html#about">About Us</a></li>
+  </ul>
+  <div class="toggle" onclick="toggleTheme()"><div class="toggle-k"></div></div>
+</nav>
+
+<div id="doc-hero">
+  <a class="back" href="index.html">← Back to project</a>
+  <div class="doc-tag">API UA — Technical Reference</div>
+  <h1 class="doc-h1">Documentation</h1>
+  <p class="doc-sub">Complete technical reference for the API UA Gateway — architecture, endpoints, configuration, security, and more.</p>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search documentation..." autocomplete="off">
+      <div id="searchDrop" class="search-drop"></div>
+    </div>
+
+    <div class="sb-head">Getting Started</div>
+    <a class="sb-link on" href="#overview"><span class="sb-dot"></span>Overview</a>
+    <a class="sb-link" href="#architecture"><span class="sb-dot"></span>System Architecture</a>
+    
+    <div class="sb-head">Project Lifecycle</div>
+    <a class="sb-link" href="#phases"><span class="sb-dot"></span>Development Phases</a>
+    
+    <div class="sb-head">Technical Details</div>
+    <a class="sb-link" href="#apis"><span class="sb-dot"></span>API UA Platform</a>
+    <a class="sb-link" href="#security"><span class="sb-dot"></span>Security & Auth</a>
+    <a class="sb-link" href="#monitoring"><span class="sb-dot"></span>Monitoring Stack</a>
+    <a class="sb-link" href="#docker"><span class="sb-dot"></span>Docker & Deploy</a>
+
+    <div class="sb-head">Resources</div>
+    <a class="sb-link" href="#materials"><span class="sb-dot"></span>Materials & Reports</a>
+    <a class="sb-link" href="#references"><span class="sb-dot"></span>References</a>
+  </nav>
+
+  <div class="content">
+
+    <div class="doc-sec" id="overview">
+      <div class="sec-header"><div class="sec-ico">📋</div><h2>Overview</h2></div>
+      <p>Over a decade ago, students at the University of Aveiro developed an API gateway (<b>OPEN DATA @ UA</b>, 2012) to centralize the institution's web services, enabling both students and faculty to easily integrate these resources into their own applications. Over time, however, the service was gradually discontinued and became obsolete.</p>
+      
+      <p>The <b>API UA Project</b> revives and modernizes this gateway, making it functional, secure, and scalable. The primary goal is to centralize all of the university's web services into a single system, delivering a developer-friendly experience through a Docusaurus-based website featuring a RapidAPI-like interactive playground, <b>while simultaneously providing a simple and intuitive management interface for system administrators</b>.</p>
+      
+      <div class="note ok"><strong>✓ Interactive Playground</strong>Once authenticated via our secure login, users can interactively test the APIs available to them by executing live calls with custom parameters directly from the platform.</div>
+    </div>
+
+    <div class="doc-sec" id="architecture">
+      <div class="sec-header"><div class="sec-ico">🏗️</div><h2>System Architecture</h2></div>
+      <p>To ensure maximum security and simulate a real-world production environment, our system is strictly divided into three main layers. The core services are fully isolated within a <b>Local Private Network</b>.</p>
+      
+      <div style="margin: 1.5rem 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #fff;">
+        <img src="architecture.png" alt="System Architecture Diagram" style="width: 100%; display: block;" />
+      </div>
+
+      <h3 style="margin-top: 1.5rem;">1. User Interface</h3>
+      <p>The <b>Academic Playground & Innovation</b> acts as the portal for developers. It provides comprehensive information about the APIs and an interactive environment to test integrations and learn how to use them.</p>
+
+      <h3>2. Local Private Network (Core)</h3>
+      <p>This is the isolated heart of the system. <b>Only the WSO2 Gateway has access to the outside network.</b></p>
+      <ul>
+        <li><b>WSO2 API Layer:</b> The sole entry point for all requests. It acts as the ultimate gateway, verifying identity through Keycloak before allowing access to any private APIs.</li>
+        <li><b>Security & Monitoring:</b> <b>Keycloak (IdP)</b> manages authentication. <b>Grafana and Loki</b> run alongside to monitor traffic and aggregate system logs.</li>
+        <li><b>FastAPI APIs (Containerized):</b> The modernized microservices (Parking UA, SAS, Access Points, Rss2Json) run in strictly isolated Docker containers, processing requests passed down from the gateway.</li>
+      </ul>
+
+      <h3>3. Backend</h3>
+      <p>The external data sources consumed by our FastAPI microservices. These include legacy systems (SoapClient), external university infrastructure (WSO2 UA), and MockUp data simulating future or unavailable services.</p>
+    </div>
+
+    <div class="doc-sec" id="phases">
+      <div class="sec-header"><div class="sec-ico">⏱️</div><h2>Development Phases</h2></div>
+      <p>The project was structured across multiple milestones to ensure continuous delivery and rigorous evaluation throughout the 2025–2026 academic year.</p>
+
+      <h3>M1 — Plan & Objectives</h3>
+      <p>We defined the project lifecycle objectives, conducted a literature review of the 2012 platform, and established the initial development plan. The core technologies (WSO2, FastAPI, Docker) were selected.</p>
+
+      <h3>M2 — Requirements, Design & Demo</h3>
+      <p>Following our pivot to a local network setup, we finalized the system architecture. We demonstrated the first functional prototypes, including the independent WSO2 gateway and the initial containerized mock services.</p>
+
+      <h3>M3 — Prototype & Interim Evaluation</h3>
+      <p>At this stage, the core microservices were fully containerized. Keycloak authentication was successfully integrated with the WSO2 gateway, and the Grafana/Loki monitoring stack was activated. We held an interim evaluation with supervisors to validate the security model.</p>
+
+      <h3>M4 — Final Product</h3>
+      <p>The interactive Docusaurus frontend was completed. Users could now log in securely and test live API calls. The four core APIs (Parking UA, SAS, Access Points, Rss2Json) were fully operational behind the WSO2 proxy.</p>
+    </div>
+
+<div class="doc-sec" id="apis">
+      <div class="sec-header"><div class="sec-ico">📡</div><h2>API UA Platform</h2></div>
+      
+      <p>All of our modernized and containerized APIs, along with their interactive documentation and testing playgrounds, are fully centralized and available on our official platform. The core microservices include:</p>
+      
+      <ul>
+        <li><b>Parking UA:</b> Provides real-time data on the availability, occupancy rates, and management of the university's various parking lots.</li>
+        <li><b>SAS (Canteen Menus UA):</b> Delivers direct access to the menus of canteens, bars, and cafés across the campus for a defined timeline of choice.</li>
+        <li><b>Access Points:</b> Exposes data and tracking related to the university's departments, such as network access point usage and their locations across the campus infrastructure.</li>
+        <li><b>Rss2Json:</b> A utility service that converts RSS feeds — such as news, announcements, and events — into clean, structured JSON formats for modern application integration.</li>
+      </ul>
+      
+      <div class="cb" style="padding: 1.5rem; text-align: center; background: var(--surface2); margin-top: 2rem;">
+        <p style="margin-bottom: 0.5rem; font-size: 0.95rem;">👉 <b>Explore more about the APIs here:</b></p>
+        <a href="https://peci-project.github.io/PECI-APIsite/" target="_blank" rel="noopener" style="color: var(--accent); font-weight: 700; font-size: 1.1rem; text-decoration: none;">
+          https://peci-project.github.io/PECI-APIsite/
+        </a>
+      </div>
+    </div>
+
+    <div class="doc-sec" id="security">
+      <div class="sec-header"><div class="sec-ico">🔐</div><h2>Security & Auth</h2></div>
+      <p>Security was a paramount concern given the private nature of the university's data. Our approach guarantees that no backend service is ever exposed directly to the public web.</p>
+      
+      <ul>
+        <li><b>Identity Provider:</b> We implemented <b>Keycloak</b> to mimic the university's central IdP. It handles user credentials and role-based access control.</li>
+        <li><b>Token Validation:</b> The Docusaurus frontend requests an OAuth2/JWT token upon user login. This token must be passed in the <ic>Authorization: Bearer</ic> header of every API call.</li>
+        <li><b>WSO2 Policies:</b> The gateway intercepts all requests, verifying token signatures against Keycloak before routing traffic to the internal Docker network.</li>
+      </ul>
+      
+      <div class="note warn"><strong>Important</strong>All direct access to the internal FastAPI containers is blocked by firewall rules. Requests strictly must pass through the WSO2 Gateway.</div>
+    </div>
+
+    <div class="doc-sec" id="monitoring">
+      <div class="sec-header"><div class="sec-ico">📊</div><h2>Monitoring Stack</h2></div>
+      <p>To ensure system reliability and to provide administrators with clear visibility into the gateway's performance, we implemented a robust real-time monitoring stack.</p>
+      
+      <ul>
+        <li><b>Grafana Dashboards:</b> Serves as the primary interface for system administrators to track metrics, API request volumes, latency, and system health.</li>
+        <li><b>Loki for Log Aggregation:</b> All Docker containers are configured to forward their logs directly to Loki. This centralizes logs from WSO2, Keycloak, and every FastAPI microservice.</li>
+        <li><b>Prometheus:</b> Gathers metrics from the APIs and the host system, feeding them into Grafana to trigger alerts if performance degrades.</li>
+      </ul>
+    </div>
+
+    <div class="doc-sec" id="docker">
+      <div class="sec-header"><div class="sec-ico">🐳</div><h2>Docker & Deploy</h2></div>
+      <p>The entire platform is designed for portability and isolation. Everything runs inside Docker containers orchestrated via <b>Docker Compose</b>.</p>
+
+      <p>To ensure maximum security within our local deployment:</p>
+      <ul>
+        <li><b>Internal Network:</b> All microservices (FastAPI), databases, Keycloak, and the monitoring tools run inside a custom Docker bridge network. They are inaccessible from the host machine or external internet.</li>
+        <li><b>Gateway Exposure:</b> WSO2 is the only container with port mappings to the host. It acts as the ultimate reverse proxy and security checkpoint.</li>
+        <li><b>Reproducibility:</b> Because the environment is containerized, migrating this entire setup into STIC's official infrastructure in the future requires minimal effort.</li>
+      </ul>
+
+      <div class="cb">
+        <div class="cb-head"><span class="cb-lang">yaml</span><button class="cb-copy" onclick="copy(this)">Copy</button></div>
+        <pre><span class="cm"># Example of the internal network isolation in docker-compose.yml</span>
+<span class="prop">services</span>:
+  <span class="prop">api-sas</span>:
+    <span class="prop">image</span>: <span class="str">api-ua/sas:latest</span>
+    <span class="prop">networks</span>:
+      - <span class="str">api-internal-network</span>
+    <span class="prop">expose</span>:
+      - <span class="num">8000</span> <span class="cm"># Exposed only internally, NOT mapped to host</span>
+
+  <span class="prop">wso2-gateway</span>:
+    <span class="prop">image</span>: <span class="str">wso2am:latest</span>
+    <span class="prop">ports</span>:
+      - <span class="str">"8243:8243"</span> <span class="cm"># Publicly accessible</span>
+    <span class="prop">networks</span>:
+      - <span class="str">api-internal-network</span></pre>
+      </div>
+    </div>
+
+    <div class="doc-sec" id="materials">
+      <div class="sec-header"><div class="sec-ico">📁</div><h2>Materials & Reports</h2></div>
+      <p>Below is the repository of all materials, slide decks, and reports produced during the project's milestones. <i>(Click to download or view the PDFs)</i>.</p>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>Document</th>
+              <th>Phase</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="#" style="color:var(--accent);font-weight:600;text-decoration:none;">Project Proposal & Plan.pdf</a></td>
+              <td>M1</td>
+              <td>Initial scope, timeline, and literature review of the 2012 system.</td>
+            </tr>
+            <tr>
+              <td><a href="#" style="color:var(--accent);font-weight:600;text-decoration:none;">Architecture Design.pdf</a></td>
+              <td>M2</td>
+              <td>Detailed network diagrams, API refactoring strategies, and gateway routing logic.</td>
+            </tr>
+            <tr>
+              <td><a href="#" style="color:var(--accent);font-weight:600;text-decoration:none;">Interim Evaluation Slides.pdf</a></td>
+              <td>M3</td>
+              <td>Slide deck used for the prototype demonstration and peer review.</td>
+            </tr>
+            <tr>
+              <td><a href="#" style="color:var(--accent);font-weight:600;text-decoration:none;">API UA Final Report.pdf</a></td>
+              <td>Final</td>
+              <td>Comprehensive academic report covering methodology, implementation, and conclusions.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-sec" id="references">
+      <div class="sec-header"><div class="sec-ico">📚</div><h2>References</h2></div>
+      <p>Key academic work and historical context that served as the foundation for this modernization effort:</p>
+      <ul>
+        <li>Ferreira, P. M. G. (2012a), “OPEN DATA @ UA”, Dissertação de Mestrado, Universidade de Aveiro.</li>
+        <li>Ferreira, P. M. G. and Gouveia, F. A. (2012b), “Academic Playground & Innovation”, Relatório Final, Universidade de Aveiro, April.</li>
+        <li>Jesus, R. A. F. (2014), “Dinamização e divulgação da plataforma API - Academic Playground & Innovation”, Dissertação de Mestrado, Universidade de Aveiro.</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<footer>API UA — Gateway Project · <span>Universidade de Aveiro</span> · DETI · 2025-2026 </footer>
+
+<button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 4L3 11M10 4L17 11M10 4V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+
+<script>
+  const scrollTopBtn = document.getElementById('scrollTop');
+  window.addEventListener('scroll', () => {
+    scrollTopBtn.classList.toggle('visible', window.scrollY > 300);
+  }, { passive: true });
+
+  function toggleTheme() {
+    const h = document.documentElement;
+    const next = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    h.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+
+  function copy(btn) {
+    const text = btn.closest('.cb').querySelector('pre').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 1800);
+    });
+  }
+
+  const sections = document.querySelectorAll('.doc-sec');
+  const sbLinks = document.querySelectorAll('.sb-link');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 110) cur = s.id; });
+    sbLinks.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + cur));
+  }, { passive: true });
+
+  const idx = [
+    { t:'Overview',             id:'overview',     k:'gateway proxy entry point cross-cutting administrators' },
+    { t:'System Architecture',  id:'architecture', k:'architecture wso2 fastapi python docker container mock api latency' },
+    { t:'Development Phases',   id:'phases',       k:'m1 m2 m3 m4 prototype final product' },
+    { t:'API UA Platform',      id:'apis',         k:'testing playgrounds documentation centralized platform' },
+    { t:'Security & Auth',      id:'security',     k:'token JWT bearer keycloak auth policies firewall' },
+    { t:'Monitoring Stack',     id:'monitoring',   k:'grafana dashboards loki log aggregation prometheus metrics' },
+    { t:'Docker & Deploy',      id:'docker',       k:'docker compose internal network exposure yaml container' },
+    { t:'Materials & Reports',  id:'materials',    k:'pdf document slide deck proposal evaluation' },
+    { t:'References',           id:'references',   k:'ferreira jesus 2012 2014 open data' },
+  ];
+
+  const inp = document.getElementById('searchInput');
+  const drop = document.getElementById('searchDrop');
+
+  if(inp) {
+    inp.addEventListener('input', () => {
+      const q = inp.value.trim().toLowerCase();
+      if (!q) { drop.classList.remove('open'); drop.innerHTML = ''; return; }
+      const hits = idx.filter(i => i.t.toLowerCase().includes(q) || i.k.includes(q));
+      drop.innerHTML = hits.length
+        ? hits.map(i => `<div class="sr" onclick="goTo('${i.id}')"><h5>${i.t}</h5><p>${i.k.split(' ').slice(0,5).join(', ')}</p></div>`).join('')
+        : '<div class="sr-none">No results for "' + q + '"</div>';
+      drop.classList.add('open');
+    });
+
+    document.addEventListener('click', e => { if (!e.target.closest('.search-wrap')) drop.classList.remove('open'); });
+  }
+
+  function goTo(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    if(drop) drop.classList.remove('open');
+    if(inp) inp.value = '';
+  }
+</script>
+</body>
+</html>
