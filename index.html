@@ -91,26 +91,27 @@
       opacity: 0; transform: translateY(14px); animation: up 0.8s ease 1.25s forwards;
     }
     
-    /* Promo Video Placeholder */
     .promo-video-box {
       margin: 2.5rem auto 0;
       width: 100%;
-      max-width: 320px;
+      max-width: 800px;
       padding: 1rem;
       border: 1px dashed var(--accent);
       border-radius: 8px;
       background: rgba(59,130,246,0.05);
-      color: var(--accent);
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
       opacity: 0;
       transform: translateY(14px);
       animation: up 0.8s ease 1.35s forwards;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
+      /* Remove display: flex if it messes with iframe sizing */
+    }
+
+    /* Add this to make the iframe scale perfectly */
+    .promo-video-box iframe {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9; /* Forces standard HD proportions */
+      border-radius: 6px;
+      display: block;
     }
 
     .scroll-cta {
@@ -340,10 +341,13 @@
       <a class="btn-ghost" href="documentation.html">Documentation</a>
     </div>
 
-    <div class="promo-video-box">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-      [ Promo Video Area ]
-    </div>
+  <div class="promo-video-box">
+    <iframe
+      src="https://www.youtube.com/embed/yd7WcqY34lM"
+      frameborder="0" 
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+      allowfullscreen>
+    </iframe>
   </div>
 
   <div class="scroll-cta" onclick="document.getElementById('intro').scrollIntoView({behavior:'smooth'})">
